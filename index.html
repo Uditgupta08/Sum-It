@@ -111,7 +111,6 @@
 						class="hidden"
 					/>
 
-					<!-- File Preview & Submit -->
 					<div
 						id="file-preview"
 						class="hidden mt-8 text-center bg-slate-900/50 p-4 rounded-lg border border-slate-700"
@@ -147,8 +146,7 @@
 						</button>
 					</div>
 
-					<!-- Divider -->
-					<div class="my-6 flex items-center">
+					<!-- <div class="my-6 flex items-center">
 						<div class="flex-grow border-t border-slate-600"></div>
 						<span class="flex-shrink mx-4 text-slate-500 text-sm font-semibold"
 							>OR</span
@@ -156,7 +154,6 @@
 						<div class="flex-grow border-t border-slate-600"></div>
 					</div>
 
-					<!-- YouTube Link Input -->
 					<div>
 						<label
 							for="youtube-input"
@@ -178,7 +175,7 @@
 								Go
 							</button>
 						</div>
-					</div>
+					</div>-->
 				</div>
 
 				<!-- Right Column: Results Section -->
@@ -410,11 +407,14 @@
 				showState("loading");
 				try {
 					const headers = isJson ? { "Content-Type": "application/json" } : {};
-					const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
-						method: "POST",
-						headers: headers,
-						body: body,
-					});
+					const response = await fetch(
+						`https://sum-it-duhz.onrender.com${endpoint}`,
+						{
+							method: "POST",
+							headers: headers,
+							body: body,
+						}
+					);
 
 					if (!response.ok) {
 						const errorData = await response.json();
