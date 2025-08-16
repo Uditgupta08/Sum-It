@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Sum-It - AI Meeting Summarizer</title>
+		<script src="https://cdn.tailwindcss.com"></script>
+		<style>
+			/* Custom font and scrollbar for a more polished look */
+			@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap");
+			body {
+				font-family: "Inter", sans-serif;
+			}
+			/* Custom scrollbar for results */
+			.custom-scrollbar::-webkit-scrollbar {
+				width: 8px;
+			}
+			.custom-scrollbar::-webkit-scrollbar-track {
+				background: #1e293b; /* slate-800 */
+			}
+			.custom-scrollbar::-webkit-scrollbar-thumb {
+				background: #475569; /* slate-600 */
+				border-radius: 4px;
+			}
+			.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+				background: #64748b; /* slate-500 */
+			}
+			/* Simple fade-in animation */
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+					transform: translateY(10px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+			.animate-fade-in {
+				animation: fadeIn 0.5s ease-in-out forwards;
+			}
+		</style>
+	</head>
+	<body
+		class="bg-slate-900 text-white min-h-screen flex flex-col items-center p-4 sm:p-8"
+	>
+		<div class="w-full max-w-6xl mx-auto">
+			<!-- Header -->
+			<header class="text-center mb-12">
+				<div class="flex items-center justify-center gap-3">
+					<h1
+						class="text-5xl sm:text-6xl font-bold text-slate-100 tracking-tight"
+					>
+						Sum-It
+					</h1>
+				</div>
+				<p class="text-lg text-slate-400 mt-3">
+					Your AI-powered meeting summarizer.
+				</p>
+			</header>
+
+			<main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+				<!-- Left Column: Upload Section -->
+				<div
+					id="upload-section"
+					class="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl"
+				>
+					<!-- Dropzone -->
+					<div
+						id="dropzone"
+						class="flex flex-col flex-grow items-center justify-center p-8 border-2 border-dashed rounded-xl border-slate-600 bg-slate-900/30 transition-colors duration-300"
+					>
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							width="48"
+							height="48"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							class="text-slate-500 mb-4"
+						>
+							<path
+								d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"
+							/>
+							<path d="M12 12v9" />
+							<path d="m16 16-4-4-4 4" />
+						</svg>
+						<p class="text-slate-300 font-semibold">
+							Drag & drop your file here
+						</p>
+						<p class="text-slate-400 text-sm mt-1">or select a file type</p>
+					</div>
+
+					<!-- Upload Buttons -->
+					<div class="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-4">
+						<button id="audio-btn" class="upload-btn">Audio</button>
+						<button id="video-btn" class="upload-btn">Video</button>
+						<button id="transcript-btn" class="upload-btn">Transcript</button>
+					</div>
+
+					<!-- Hidden file inputs -->
+					<input type="file" id="audio-input" accept="audio/*" class="hidden" />
+					<input type="file" id="video-input" accept="video/*" class="hidden" />
+					<input
+						type="file"
+						id="transcript-input"
+						accept=".txt,text/plain"
+						class="hidden"
+					/>
+
+					<!-- File Preview & Submit -->
+					<div
+						id="file-preview"
+						class="hidden mt-8 text-center bg-slate-900/50 p-4 rounded-lg border border-slate-700"
+					>
+						<div class="flex items-center justify-center text-slate-300">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="20"
+								height="20"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="mr-2 flex-shrink-0"
+							>
+								<path
+									d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"
+								/>
+								<polyline points="14 2 14 8 20 8" />
+							</svg>
+							<p class="truncate">
+								Selected:
+								<span id="file-name" class="font-semibold text-cyan-300"></span>
+							</p>
+						</div>
+						<button
+							id="summarize-btn"
+							class="mt-4 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-all duration-300 transform hover:scale-105"
+						>
+							Summarize File
+						</button>
+					</div>
+
+					<!-- Divider -->
+					<div class="my-6 flex items-center">
+						<div class="flex-grow border-t border-slate-600"></div>
+						<span class="flex-shrink mx-4 text-slate-500 text-sm font-semibold"
+							>OR</span
+						>
+						<div class="flex-grow border-t border-slate-600"></div>
+					</div>
+
+					<!-- YouTube Link Input -->
+					<div>
+						<label
+							for="youtube-input"
+							class="block text-sm font-medium text-slate-300 mb-2"
+							>Summarize from YouTube Link</label
+						>
+						<div class="flex gap-2">
+							<input
+								type="text"
+								id="youtube-input"
+								name="youtube-link"
+								placeholder="https://www.youtube.com/watch?v=..."
+								class="w-full bg-slate-900 border border-slate-600 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition"
+							/>
+							<button
+								id="summarize-link-btn"
+								class="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex-shrink-0"
+							>
+								Go
+							</button>
+						</div>
+					</div>
+				</div>
+
+				<!-- Right Column: Results Section -->
+				<div
+					class="bg-slate-800 border border-slate-700 rounded-2xl p-6 sm:p-8 shadow-2xl min-h-[30rem] flex flex-col"
+				>
+					<div id="results-container" class="h-full">
+						<!-- Initial State -->
+						<div
+							id="initial-state"
+							class="flex flex-col h-full justify-center items-center text-center text-slate-500"
+						>
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="64"
+								height="64"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								class="text-slate-500 opacity-20 mb-4"
+							>
+								<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+								<path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+							</svg>
+							<h3 class="text-lg font-semibold">
+								Your summary will appear here
+							</h3>
+							<p class="max-w-xs">
+								Upload a file or paste a link to get started.
+							</p>
+						</div>
+						<!-- Loading State -->
+						<div
+							id="loading-state"
+							class="hidden flex-col h-full justify-center items-center text-center"
+						>
+							<div
+								class="w-12 h-12 border-4 border-cyan-400 border-t-transparent border-solid rounded-full animate-spin"
+							></div>
+							<p class="mt-4 text-lg text-slate-300">
+								Processing your request...
+							</p>
+							<p class="text-sm text-slate-400">
+								This may take a moment, especially for videos.
+							</p>
+						</div>
+						<!-- Error State -->
+						<div
+							id="error-state"
+							class="hidden flex-col h-full justify-center items-center text-center bg-red-900/20 border border-red-500/30 text-red-300 p-6 rounded-lg"
+						>
+							<h3 class="font-bold text-lg">An Error Occurred</h3>
+							<p id="error-message" class="mt-2 text-sm"></p>
+							<button
+								id="reset-btn-error"
+								class="mt-6 mx-auto bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+							>
+								Try Again
+							</button>
+						</div>
+						<!-- Success State -->
+						<div
+							id="success-state"
+							class="hidden w-full space-y-6 animate-fade-in"
+						>
+							<div
+								class="bg-slate-800/50 p-6 rounded-xl border border-slate-700"
+							>
+								<h3 class="text-xl font-bold text-cyan-300 mb-3">Transcript</h3>
+								<div
+									id="transcript-content"
+									class="max-h-64 overflow-y-auto pr-3 text-slate-300 whitespace-pre-wrap text-sm leading-relaxed custom-scrollbar"
+								></div>
+							</div>
+							<div
+								class="bg-slate-800/50 p-6 rounded-xl border border-slate-700"
+							>
+								<h3 class="text-xl font-bold text-cyan-300 mb-3">Summary</h3>
+								<div
+									id="summary-content"
+									class="text-slate-200 whitespace-pre-wrap text-sm leading-relaxed"
+								></div>
+							</div>
+							<div class="text-center">
+								<button
+									id="reset-btn-success"
+									class="bg-slate-600 hover:bg-slate-500 text-white font-bold py-2 px-6 rounded-lg transition-colors"
+								>
+									Summarize Another
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</main>
+
+			<!-- <footer class="text-center mt-12 text-slate-500 text-sm">
+				<p>Powered by FastAPI, Whisper, and Llama 3</p>
+			</footer> -->
+		</div>
+
+		<!-- Custom CSS for buttons and layout -->
+		<style>
+			.upload-btn {
+				background-color: #334155; /* slate-700 */
+				color: #cbd5e1; /* slate-300 */
+				font-weight: 600;
+				padding: 0.75rem 1rem;
+				border-radius: 0.5rem;
+				border: 1px solid #475569; /* slate-600 */
+				transition: all 0.2s ease-in-out;
+			}
+			.upload-btn:hover {
+				background-color: #475569; /* slate-600 */
+				border-color: #06b6d4; /* cyan-500 */
+				color: #f1f5f9; /* slate-100 */
+			}
+		</style>
+
+		<script>
+			// --- DOM Element References ---
+			const dropzone = document.getElementById("dropzone");
+			const filePreview = document.getElementById("file-preview");
+			const fileNameEl = document.getElementById("file-name");
+
+			const audioBtn = document.getElementById("audio-btn");
+			const videoBtn = document.getElementById("video-btn");
+			const transcriptBtn = document.getElementById("transcript-btn");
+
+			const audioInput = document.getElementById("audio-input");
+			const videoInput = document.getElementById("video-input");
+			const transcriptInput = document.getElementById("transcript-input");
+
+			const summarizeBtn = document.getElementById("summarize-btn");
+
+			const youtubeInput = document.getElementById("youtube-input");
+			const summarizeLinkBtn = document.getElementById("summarize-link-btn");
+
+			const initialState = document.getElementById("initial-state");
+			const loadingState = document.getElementById("loading-state");
+			const errorState = document.getElementById("error-state");
+			const successState = document.getElementById("success-state");
+
+			const transcriptContent = document.getElementById("transcript-content");
+			const summaryContent = document.getElementById("summary-content");
+			const errorMessage = document.getElementById("error-message");
+
+			const resetBtnError = document.getElementById("reset-btn-error");
+			const resetBtnSuccess = document.getElementById("reset-btn-success");
+
+			let currentFile = null;
+
+			// --- State Management Functions ---
+			function showState(state) {
+				["initial", "loading", "error", "success"].forEach((s) => {
+					const el = document.getElementById(`${s}-state`);
+					el.classList.add("hidden");
+					// Remove flex from all states initially
+					el.classList.remove("flex", "flex-col");
+				});
+				if (state) {
+					const el = document.getElementById(`${state}-state`);
+					el.classList.remove("hidden");
+					// Re-apply flex display only to states that need it for centering
+					if (["initial", "loading", "error"].includes(state)) {
+						el.classList.add("flex", "flex-col");
+					}
+				}
+			}
+
+			function handleFileSelect(file) {
+				if (!file) return;
+				currentFile = file;
+				fileNameEl.textContent = file.name;
+				filePreview.classList.remove("hidden");
+				youtubeInput.value = ""; // Clear youtube input if a file is selected
+			}
+
+			function resetApp() {
+				currentFile = null;
+				filePreview.classList.add("hidden");
+				audioInput.value = "";
+				videoInput.value = "";
+				transcriptInput.value = "";
+				youtubeInput.value = "";
+				showState("initial");
+			}
+
+			// --- Event Listeners ---
+			audioBtn.addEventListener("click", () => audioInput.click());
+			videoBtn.addEventListener("click", () => videoInput.click());
+			transcriptBtn.addEventListener("click", () => transcriptInput.click());
+
+			audioInput.addEventListener("change", (e) =>
+				handleFileSelect(e.target.files[0])
+			);
+			videoInput.addEventListener("change", (e) =>
+				handleFileSelect(e.target.files[0])
+			);
+			transcriptInput.addEventListener("change", (e) =>
+				handleFileSelect(e.target.files[0])
+			);
+
+			resetBtnError.addEventListener("click", resetApp);
+			resetBtnSuccess.addEventListener("click", resetApp);
+
+			// --- Drag and Drop ---
+			dropzone.addEventListener("dragover", (e) => {
+				e.preventDefault();
+				dropzone.classList.add("border-cyan-400", "bg-slate-700/50");
+			});
+			dropzone.addEventListener("dragleave", (e) => {
+				e.preventDefault();
+				dropzone.classList.remove("border-cyan-400", "bg-slate-700/50");
+			});
+			dropzone.addEventListener("drop", (e) => {
+				e.preventDefault();
+				dropzone.classList.remove("border-cyan-400", "bg-slate-700/50");
+				if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+					handleFileSelect(e.dataTransfer.files[0]);
+				}
+			});
+
+			// --- API Call Logic ---
+			async function performSummarization(endpoint, body, isJson = false) {
+				showState("loading");
+				try {
+					const headers = isJson ? { "Content-Type": "application/json" } : {};
+					const response = await fetch(`http://127.0.0.1:8000${endpoint}`, {
+						method: "POST",
+						headers: headers,
+						body: body,
+					});
+
+					if (!response.ok) {
+						const errorData = await response.json();
+						throw new Error(
+							errorData.detail || `HTTP Error: ${response.status}`
+						);
+					}
+
+					const data = await response.json();
+					transcriptContent.textContent = data.transcript;
+					summaryContent.textContent = data.summary;
+					showState("success");
+				} catch (err) {
+					console.error("API Error:", err);
+					errorMessage.textContent = err.message;
+					showState("error");
+				} finally {
+					currentFile = null;
+					filePreview.classList.add("hidden");
+					youtubeInput.value = "";
+				}
+			}
+
+			// --- Button Click Handlers for API calls ---
+			summarizeBtn.addEventListener("click", () => {
+				if (!currentFile) {
+					alert("Please select a file first.");
+					return;
+				}
+				const formData = new FormData();
+				formData.append("file", currentFile);
+				performSummarization("/summarize/", formData);
+			});
+
+			// --- !!! THIS IS THE UPDATED SECTION !!! ---
+			summarizeLinkBtn.addEventListener("click", () => {
+				const youtubeUrl = youtubeInput.value.trim();
+				if (!youtubeUrl) {
+					alert("Please enter a YouTube URL.");
+					return;
+				}
+
+				// Simple validation for a URL format
+				try {
+					new URL(youtubeUrl);
+				} catch (_) {
+					alert("Please enter a valid YouTube URL.");
+					return;
+				}
+
+				const payload = {
+					youtube_url: youtubeUrl,
+				};
+
+				// Call the new backend endpoint for YouTube links
+				performSummarization(
+					"/summarize-youtube/",
+					JSON.stringify(payload),
+					true
+				);
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+aiofiles
+openai
+pydub
+python-dotenv
+groq
+youtube-transcript-api
+pydantic
