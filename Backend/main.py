@@ -70,6 +70,7 @@ ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:8000", 
     "http://localhost:8000",
+    "https://sum-it-duhz.onrender.com/summarize/"
 ]
 
 app.add_middleware(
@@ -272,3 +273,4 @@ async def summarize_youtube(payload: YouTubeLinkPayload):
     except Exception as e:
         logger.exception("An unexpected error occurred during YouTube summarization.")
         raise HTTPException(status_code=500, detail="An internal server error occurred.")
+
