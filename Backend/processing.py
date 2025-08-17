@@ -173,7 +173,7 @@ def _ensure_wav(input_path: str, sample_rate: int = 16000) -> Tuple[str, bool]:
         raise
 
 
-def audio_to_transcript(audio_path: str, model_size: str = "small", language: Optional[str] = None) -> str:
+def audio_to_transcript(audio_path: str, model_size: str = "tiny", language: Optional[str] = None) -> str:
     """
     Transcribe an audio file into text using Whisper (openai-whisper).
 
@@ -254,3 +254,4 @@ def audio_to_transcript(audio_path: str, model_size: str = "small", language: Op
                 logger.debug("Deleted temporary normalized WAV: %s", wav_path)
         except Exception:
             logger.warning("Failed to delete temporary WAV file: %s", wav_path)
+
