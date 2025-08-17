@@ -70,15 +70,15 @@ ALLOWED_ORIGINS = [
     "http://localhost:5500",
     "http://127.0.0.1:8000", 
     "http://localhost:8000",
-    "https://sum-it-duhz.onrender.com$"
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allows all origins
-    allow_credentials=True,
-    allow_methods=["*"], # Allows all methods (GET, POST)
-    allow_headers=["*"], # Allows all headers
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,          
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+    expose_headers=["*"],
 )
 
 # -----------------------
