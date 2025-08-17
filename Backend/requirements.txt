@@ -7,4 +7,5 @@ pydub
 python-dotenv
 groq
 youtube-transcript-api
+openai-whisper
 pydantic
